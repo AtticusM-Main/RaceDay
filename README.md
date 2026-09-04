@@ -45,4 +45,9 @@ API Endpoint Plan (EndpointPlan.md)
 
 This repo holds the data model and the API contract for the backend system. It is a planning stage project. The database schema and the endpoint plan are ready for implementation. Actual API code and server logic are not written yet.
 
+
+## CI
 <img width="1090" height="702" alt="image" src="https://github.com/user-attachments/assets/188a025f-3eb9-4ee6-9513-72a49d167d1e" />
+
+## YOUTUBE LINK
+https://youtu.be/al-fq-1F6W8 
