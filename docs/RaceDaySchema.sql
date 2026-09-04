@@ -1,31 +1,13 @@
-/*
-    RaceDay — Database Schema
-    Matches docs/ERD.png exactly: Role, User, Event, Category, Enrolment, Result.
-    Target: SQL Server (tested via SQL Server 2022 in Docker on Mac, run in SSMS on Windows).
-*/
 
-IF DB_ID('RaceDay') IS NULL
-BEGIN
-    CREATE DATABASE RaceDay;
+CREATE DATABASE RaceDay;
 END
 GO
 
 USE RaceDay;
 GO
 
--- Drop in FK-safe order if re-running against a dirty instance.
-IF OBJECT_ID('dbo.Result', 'U')     IS NOT NULL DROP TABLE dbo.Result;
-IF OBJECT_ID('dbo.Enrolment', 'U')  IS NOT NULL DROP TABLE dbo.Enrolment;
-IF OBJECT_ID('dbo.Category', 'U')   IS NOT NULL DROP TABLE dbo.Category;
-IF OBJECT_ID('dbo.Event', 'U')      IS NOT NULL DROP TABLE dbo.Event;
-IF OBJECT_ID('dbo.[User]', 'U')     IS NOT NULL DROP TABLE dbo.[User];
-IF OBJECT_ID('dbo.Role', 'U')       IS NOT NULL DROP TABLE dbo.Role;
-GO
 
--- =========================================================
--- Role
--- =========================================================
-CREATE TABLE dbo.Role (
+CREATE TABLE Role (
     RoleId      INT IDENTITY(1,1) NOT NULL,
     RoleName    VARCHAR(20)       NOT NULL,
     CONSTRAINT PK_Role PRIMARY KEY (RoleId),
@@ -33,10 +15,8 @@ CREATE TABLE dbo.Role (
 );
 GO
 
--- =========================================================
--- User
--- =========================================================
-CREATE TABLE dbo.[User] (
+
+CREATE TABLE User(
     UserId          INT IDENTITY(1,1)   NOT NULL,
     RoleId          INT                 NOT NULL,
     FullName        VARCHAR(100)        NOT NULL,
@@ -49,10 +29,7 @@ CREATE TABLE dbo.[User] (
 );
 GO
 
--- =========================================================
--- Event
--- =========================================================
-CREATE TABLE dbo.Event (
+CREATE TABLE Event (
     EventId         INT IDENTITY(1,1)   NOT NULL,
     OrganiserId     INT                 NOT NULL,
     Name            VARCHAR(150)        NOT NULL,
@@ -65,10 +42,7 @@ CREATE TABLE dbo.Event (
 );
 GO
 
--- =========================================================
--- Category
--- =========================================================
-CREATE TABLE dbo.Category (
+CREATE TABLE Category (
     CategoryId      INT IDENTITY(1,1)   NOT NULL,
     EventId         INT                 NOT NULL,
     Name            VARCHAR(100)        NOT NULL,
@@ -79,10 +53,7 @@ CREATE TABLE dbo.Category (
 );
 GO
 
--- =========================================================
--- Enrolment (resolves User(Participant) <-> Category many-to-many)
--- =========================================================
-CREATE TABLE dbo.Enrolment (
+CREATE TABLE Enrolment (
     EnrolmentId     INT IDENTITY(1,1)   NOT NULL,
     ParticipantId   INT                 NOT NULL,
     CategoryId      INT                 NOT NULL,
@@ -94,10 +65,7 @@ CREATE TABLE dbo.Enrolment (
 );
 GO
 
--- =========================================================
--- Result (one-to-one with Enrolment)
--- =========================================================
-CREATE TABLE dbo.Result (
+CREATE TABLE Result (
     ResultId        INT IDENTITY(1,1)   NOT NULL,
     EnrolmentId     INT                 NOT NULL,
     FinishTime      TIME                NOT NULL,
@@ -109,15 +77,10 @@ CREATE TABLE dbo.Result (
 );
 GO
 
--- =========================================================
--- Seed data
--- =========================================================
-
-INSERT INTO dbo.Role (RoleName) VALUES ('Organiser'), ('Participant');
+INSERT INTO Role (RoleName) VALUES ('Organiser'), ('Participant');
 GO
 
--- 2 Organisers, 2 Participants
-INSERT INTO dbo.[User] (RoleId, FullName, Email, PasswordHash) VALUES
+INSERT INTO User (RoleId, FullName, Email, PasswordHash) VALUES
     ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Organiser'),  'Naledi Khumalo', 'naledi.khumalo@raceday.co.za', 'HASHED_PASSWORD_1'),
     ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Organiser'),  'Johan Botha',    'johan.botha@raceday.co.za',    'HASHED_PASSWORD_2'),
     ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Participant'),'Thandiwe Nkosi', 'thandiwe.nkosi@example.com',   'HASHED_PASSWORD_3'),
