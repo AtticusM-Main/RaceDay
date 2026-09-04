@@ -1,7 +1,6 @@
 # RaceDay — API Endpoint Plan
 
-Planned before any API code is written (Part 2 implementation must match this plan; deviations are explained in the PR/README).
-
+Planned before any API code is written
 Roles: **None** = public, no token required. **Any** = any authenticated user. **Organiser** / **Participant** = that role only.
 
 ## Authentication
