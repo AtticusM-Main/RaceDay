@@ -64,6 +64,4 @@ This is the plan for the API before we start coding it.
 |---|---|---|---|---|---|
 | GET | /api/categories/{id}/results | Get public leaderboard for a category sorted by finishing position. | None | None | 200 OK with ordered array of results. 404 Not Found. |
 
-### Why This Endpoint?
 
-We need the leaderboard endpoint so people can actually see results. A race system with no way to view the leaderboard is pretty useless. Even people who didn't run that specific category should be able to see who finished first.
