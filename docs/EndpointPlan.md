@@ -1,62 +1,69 @@
-# RaceDay — API Endpoint Plan
+# RaceDay API Endpoint Plan
 
-Planned before any API code is written
-Roles: **None** = public, no token required. **Any** = any authenticated user. **Organiser** / **Participant** = that role only.
+This is the plan for the API before we start coding it.
+
+## Role Definitions
+
+- **None** = Public endpoint, no token needed
+- **Any** = Any logged-in user
+- **Organiser** or **Participant** = Only that role can use it
 
 ## Authentication
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| POST | /api/auth/register | Registers a new account as Organiser or Participant. | None | `{ fullName, email, password, role }` | 201 Created – new user id and role.<br>400 Bad Request – validation failed.<br>409 Conflict – email already registered. |
-| POST | /api/auth/login | Authenticates a user and issues a JWT. | None | `{ email, password }` | 200 OK – JWT token and role.<br>401 Unauthorized – invalid credentials. |
+| POST | /api/auth/register | Create a new account as either an Organiser or Participant. | None | `{ fullName, email, password, role }` | 201 Created with new user id and role. 400 Bad Request if data is invalid. |
+| POST | /api/auth/login | Log in a user and get a JWT token. | None | `{ email, password }` | 200 OK with JWT token and role. 401 Unauthorized if credentials are wrong. |
 
 ## User Profile
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| GET | /api/users/me | Returns the logged-in user's own profile. | Any | None | 200 OK – profile details.<br>401 Unauthorized. |
-| PUT | /api/users/me | Updates the logged-in user's own profile. | Any | `{ fullName, email }` | 200 OK – updated profile.<br>400 Bad Request.<br>401 Unauthorized. |
+| GET | /api/users/me | Get the logged-in user's profile info. | Any | None | 200 OK with profile details. 401 Unauthorized. |
+| PUT | /api/users/me | Update the logged-in user's profile. | Any | `{ fullName, email }` | 200 OK with updated profile. 400 Bad Request. 401 Unauthorized. |
 
 ## Events
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| GET | /api/events | Lists all events so anyone can browse. | None | None | 200 OK – array of events. |
-| GET | /api/events/{id} | Returns details for a single event. | None | None | 200 OK – event details.<br>404 Not Found. |
-| POST | /api/events | Creates a new event owned by the logged-in organiser. | Organiser | `{ name, description, eventDate, location }` | 201 Created – new event id.<br>400 Bad Request.<br>403 Forbidden. |
-| PUT | /api/events/{id} | Updates an event owned by the logged-in organiser. | Organiser | `{ name, description, eventDate, location }` | 200 OK – updated event.<br>403 Forbidden – not the owning organiser.<br>404 Not Found. |
-| DELETE | /api/events/{id} | Deletes an event owned by the logged-in organiser. | Organiser | None | 204 No Content.<br>403 Forbidden.<br>404 Not Found. |
+| GET | /api/events | List all events so people can see what races exist. | None | None | 200 OK with array of events. |
+| GET | /api/events/{id} | Get details for one specific event. | None | None | 200 OK with event details. 404 Not Found. |
+| POST | /api/events | Create a new event (logged-in organiser owns it). | Organiser | `{ name, description, eventDate, location }` | 201 Created with new event id. 400 Bad Request. 403 Forbidden. |
+| PUT | /api/events/{id} | Update an event owned by the logged-in organiser. | Organiser | `{ name, description, eventDate, location }` | 200 OK with updated event. 403 Forbidden if not the owner. 404 Not Found. |
+| DELETE | /api/events/{id} | Delete an event owned by the logged-in organiser. | Organiser | None | 204 No Content. 403 Forbidden. 404 Not Found. |
 
 ## Categories
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| GET | /api/events/{eventId}/categories | Lists the categories under an event. | None | None | 200 OK – array of categories.<br>404 Not Found – event doesn't exist. |
-| POST | /api/events/{eventId}/categories | Adds a race category to an event. | Organiser | `{ name, distance, maxParticipants }` | 201 Created – new category id.<br>403 Forbidden.<br>404 Not Found. |
-| PUT | /api/categories/{id} | Updates a category. | Organiser | `{ name, distance, maxParticipants }` | 200 OK – updated category.<br>403 Forbidden.<br>404 Not Found. |
-| DELETE | /api/categories/{id} | Removes a category. | Organiser | None | 204 No Content.<br>403 Forbidden.<br>404 Not Found. |
+| GET | /api/events/{eventId}/categories | List all categories for an event. | None | None | 200 OK with array of categories. 404 Not Found if event doesn't exist. |
+| POST | /api/events/{eventId}/categories | Add a new race category to an event. | Organiser | `{ name, distance, maxParticipants }` | 201 Created with new category id. 403 Forbidden. 404 Not Found. |
+| PUT | /api/categories/{id} | Update a category. | Organiser | `{ name, distance, maxParticipants }` | 200 OK with updated category. 403 Forbidden. 404 Not Found. |
+| DELETE | /api/categories/{id} | Delete a category. | Organiser | None | 204 No Content. 403 Forbidden. 404 Not Found. |
 
 ## Event Enrolments
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| POST | /api/enrolments | Enrols the logged-in participant into a category. | Participant | `{ categoryId }` | 201 Created – new enrolment id.<br>404 Not Found – category doesn't exist.<br>409 Conflict – already enrolled in this category. |
-| GET | /api/enrolments/me | Lists the logged-in participant's own enrolments. | Participant | None | 200 OK – array of enrolments. |
-| DELETE | /api/enrolments/{id} | Cancels the logged-in participant's own enrolment. | Participant | None | 204 No Content.<br>403 Forbidden – not the owning participant.<br>404 Not Found. |
-| GET | /api/events/{eventId}/enrolments | Lists every enrolment across an event's categories, for organiser oversight. | Organiser | None | 200 OK – array of enrolments with participant details.<br>403 Forbidden.<br>404 Not Found. |
+| POST | /api/enrolments | Sign up a logged-in participant for a category. | Participant | `{ categoryId }` | 201 Created with new enrolment id. 404 Not Found if category doesn't exist. 409 Conflict if already enrolled. |
+| GET | /api/enrolments/me | Get a logged-in participant's own enrolments. | Participant | None | 200 OK with array of enrolments. |
+| DELETE | /api/enrolments/{id} | Cancel a logged-in participant's enrolment. | Participant | None | 204 No Content. 403 Forbidden if not the participant. 404 Not Found. |
+| GET | /api/events/{eventId}/enrolments | List all enrolments for an event (organiser oversight). | Organiser | None | 200 OK with array of enrolments and participant details. 404 Not Found. |
 
 ## Results
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| POST | /api/results | Captures a result against a participant's enrolment. | Organiser | `{ enrolmentId, finishTime, position }` | 201 Created – new result id.<br>403 Forbidden.<br>404 Not Found – enrolment doesn't exist.<br>409 Conflict – result already captured for this enrolment. |
-| PUT | /api/results/{id} | Updates a previously captured result. | Organiser | `{ finishTime, position }` | 200 OK – updated result.<br>403 Forbidden.<br>404 Not Found. |
-| GET | /api/results/me | Lists the logged-in participant's own results, to track personal performance. | Participant | None | 200 OK – array of results with event/category context. |
+| POST | /api/results | Record a participant's result for an enrolment. | Organiser | `{ enrolmentId, finishTime, position }` | 201 Created with new result id. 403 Forbidden. 404 Not Found. |
+| PUT | /api/results/{id} | Update a recorded result. | Organiser | `{ finishTime, position }` | 200 OK with updated result. 403 Forbidden. 404 Not Found. |
+| GET | /api/results/me | Get a logged-in participant's own results. | Participant | None | 200 OK with array of results and event/category details. |
 
-## Additional endpoint identified as necessary
+## Additional Endpoints
 
 | HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
 |---|---|---|---|---|---|
-| GET | /api/categories/{id}/results | Public leaderboard: results for a category ordered by finishing position. | None | None | 200 OK – ordered array of results.<br>404 Not Found. |
+| GET | /api/categories/{id}/results | Get public leaderboard for a category sorted by finishing position. | None | None | 200 OK with ordered array of results. 404 Not Found. |
 
-Added beyond the minimum because a race system without a visible leaderboard has no way to show captured results back to entrants who aren't the one who ran that specific category — this is the natural read-side counterpart to `POST /api/results`.
+### Why This Endpoint?
+
+We need the leaderboard endpoint so people can actually see results. A race system with no way to view the leaderboard is pretty useless. Even people who didn't run that specific category should be able to see who finished first.
