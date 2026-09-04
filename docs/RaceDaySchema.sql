@@ -74,4 +74,44 @@ CREATE TABLE Result (
     CONSTRAINT FK_Result_Enrolment FOREIGN KEY (EnrolmentId) REFERENCES dbo.Enrolment (EnrolmentId),
 );
 GO
+INSERT INTO Role (RoleName) VALUES ('Organiser'), ('Participant');
+GO
 
+INSERT INTO User (RoleId, FullName, Email, PasswordHash) VALUES
+    ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Organiser'),  'Naledi Khumalo', 'naledi.khumalo@raceday.co.za', 'HASHED_PASSWORD_1'),
+    ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Organiser'),  'Johan Botha',    'johan.botha@raceday.co.za',    'HASHED_PASSWORD_2'),
+    ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Participant'),'Thandiwe Nkosi', 'thandiwe.nkosi@example.com',   'HASHED_PASSWORD_3'),
+    ((SELECT RoleId FROM dbo.Role WHERE RoleName = 'Participant'),'Ryan Pillay',    'ryan.pillay@example.com',      'HASHED_PASSWORD_4');
+GO
+
+-- 3 Events, each owned by an organiser
+INSERT INTO dbo.Event (OrganiserId, Name, Description, EventDate, Location) VALUES
+    ((SELECT UserId FROM dbo.[User] WHERE Email = 'naledi.khumalo@raceday.co.za'), 'Cape Town Spring Run',   'Annual road running event through the city bowl.', '2026-10-18 07:00:00', 'Cape Town, South Africa'),
+    ((SELECT UserId FROM dbo.[User] WHERE Email = 'naledi.khumalo@raceday.co.za'), 'Durban Beachfront Race', 'Coastal race along the Golden Mile.',               '2026-11-08 06:30:00', 'Durban, South Africa'),
+    ((SELECT UserId FROM dbo.[User] WHERE Email = 'johan.botha@raceday.co.za'),    'Joburg Trail Challenge', 'Off-road trail run through the Northern suburbs.',  '2026-11-22 06:00:00', 'Johannesburg, South Africa');
+GO
+
+-- Categories for each event
+INSERT INTO dbo.Category (EventId, Name, Distance, MaxParticipants) VALUES
+    ((SELECT EventId FROM dbo.Event WHERE Name = 'Cape Town Spring Run'),   '5km',  5.00,  500),
+    ((SELECT EventId FROM dbo.Event WHERE Name = 'Cape Town Spring Run'),   '10km', 10.00, 300),
+    ((SELECT EventId FROM dbo.Event WHERE Name = 'Durban Beachfront Race'), '5km',  5.00,  400),
+    ((SELECT EventId FROM dbo.Event WHERE Name = 'Durban Beachfront Race'), '21km', 21.10, 150),
+    ((SELECT EventId FROM dbo.Event WHERE Name = 'Joburg Trail Challenge'), '15km', 15.00, 200);
+GO
+
+-- Sample enrolments
+INSERT INTO dbo.Enrolment (ParticipantId, CategoryId) VALUES
+     (SELECT UserId FROM dbo.[User] WHERE Email = 'thandiwe.nkosi@example.com'),
+     (SELECT CategoryId FROM dbo.Category c JOIN dbo.Event e ON c.EventId = e.EventId WHERE e.Name = 'Cape Town Spring Run' AND c.Name = '10km'),
+     (SELECT UserId FROM dbo.[User] WHERE Email = 'ryan.pillay@example.com'),
+     (SELECT CategoryId FROM dbo.Category c JOIN dbo.Event e ON c.EventId = e.EventId WHERE e.Name = 'Cape Town Spring Run' AND c.Name = '10km'),
+     (SELECT UserId FROM dbo.[User] WHERE Email = 'thandiwe.nkosi@example.com'),
+     (SELECT CategoryId FROM dbo.Category c JOIN dbo.Event e ON c.EventId = e.EventId WHERE e.Name = 'Durban Beachfront Race' AND c.Name = '21km');
+GO
+
+INSERT INTO dbo.Result (EnrolmentId, FinishTime, Position) VALUES
+    (SELECT EnrolmentId FROM dbo.Enrolment WHERE ParticipantId = (SELECT UserId FROM dbo.[User] WHERE Email = 'thandiwe.nkosi@example.com')
+      AND CategoryId = (SELECT CategoryId FROM dbo.Category c JOIN dbo.Event e ON c.EventId = e.EventId WHERE e.Name = 'Cape Town Spring Run' AND c.Name = '10km'),
+     '00:52:14', 3);
+GO
